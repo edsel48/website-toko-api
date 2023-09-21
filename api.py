@@ -4,7 +4,6 @@ from flask import Flask, jsonify, request
 # DATA PROCESSING STUFF
 import numpy as np
 import pandas as pd
-from datetime import datetime, timedelta
 import json
 
 # ARIMA STUFF
@@ -63,7 +62,7 @@ def home():
     return jsonify({'data': data})
 
 
-@app.route('/', methods=['POST'])
+@app.route('/predict', methods=['POST'])
 def testing():
     # getting the data from request
     record = json.loads(request.data)
@@ -89,4 +88,4 @@ def testing():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=7373)
