@@ -68,7 +68,7 @@ def parser_helper(request):
     start = int(record['start'])
     end = int(record['end'])
 
-    sold_data = record['sold_data']
+    sold_data = [int(x) for x in record['sold_data']]
 
     return start, end, sold_data
 
@@ -138,7 +138,6 @@ def predict_arima():
         "end": end,
         "predicted": prediction,
     })
-
 
 @app.route('/predict/linear-regression', methods=['POST'])
 def predict_linear_regression():
