@@ -145,7 +145,7 @@ def predict_linear_regression():
     lr_model = get_lr_model(start, end, sold_data)
 
     predict = lr_model.predict([[x] for x in range(start-1, end)])
-    print(type(predict))
+
     predicted = [int(x) for x in list(predict)]
 
     return jsonify({
