@@ -22,6 +22,9 @@ from sklearn.svm import SVR
 # ENV
 from dotenv import load_dotenv
 
+# Created Machine Learning Stuff
+from ml import LinearRegression, SVM, myARIMA
+
 def prepare_dataframe(data):
     training_index = range(len(data))
     col = ['sold']
