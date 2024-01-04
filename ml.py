@@ -25,7 +25,12 @@ class LinearRegression:
             self.bias -= self.learning_rate * db
 
     def predict(self, X):
-        return np.dot(X, self.weights) + self.bias
+        return {
+            "data": np.dot(X, self.weights) + self.bias,
+            "weights": self.weights,
+            "bias": self.bias,
+            "algorithm": "Linear Regression"
+        }
 
 
 class SVM:
@@ -60,7 +65,12 @@ class SVM:
             self.bias -= self.learning_rate * db
 
     def predict(self, X):
-        return np.sign(np.dot(X, self.weights) + self.bias)
+        return {
+            "data": np.sign(np.dot(X, self.weights) + self.bias),
+            "weights": self.weights,
+            "bias": self.bias,
+            "algorithm": "SVM"
+        }
 
 
 class myARIMA:
@@ -101,6 +111,7 @@ class myARIMA:
 
     def forecast(self, data, steps):
         forecasted_values = np.zeros(steps)
+        forecasted_data = np.zeros(steps)
         differenced_data = self.difference(data, self.d)
 
         for i in range(steps):
@@ -115,8 +126,18 @@ class myARIMA:
 
             # Invert differencing
             forecasted_values[i] = data[-1] + prediction
+            forecasted_data[i] = {
+                "data": data[-1],
+                "AR": ar_part,
+                "MA": ma_part,
+                "prediction": prediction
+            }
 
             # Update data for the next iteration
             differenced_data = np.concatenate((differenced_data, [prediction]))
 
-        return forecasted_values
+        return {
+            "data": forecasted_values,
+            "prediction_steps": forecasted_data,
+            "Algorithm": "ARIMA"
+        }
