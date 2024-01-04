@@ -1,4 +1,6 @@
 # FLASK FOR API PURPOSES
+import os
+
 from flask import Flask, jsonify, request
 
 # DATA PROCESSING STUFF
@@ -17,6 +19,8 @@ from sklearn.model_selection import train_test_split
 # SVR
 from sklearn.svm import SVR
 
+# ENV
+from dotenv import load_dotenv
 
 def prepare_dataframe(data):
     training_index = range(len(data))
@@ -116,8 +120,10 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    data = "TEST DATA CHECK"
-    return jsonify({'data': data})
+    return jsonify({
+        'initial_data': os.environ.get('initial_data'),
+        'version': os.environ.get('version')
+    })
 
 
 @app.route('/predict/arima', methods=['POST'])
@@ -172,4 +178,5 @@ def predict_svr():
 
 
 if __name__ == '__main__':
+    load_dotenv()
     app.run(debug=True, port=7373)
