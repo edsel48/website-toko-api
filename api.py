@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 # Created Machine Learning Stuff
 from ml import LinearRegression, SVM, myARIMA
 
+
 def prepare_dataframe(data):
     training_index = range(len(data))
     col = ['sold']
@@ -137,7 +138,7 @@ def predict_arima():
     model = process_data(sold_data)
 
     # predicting the data from the model
-    predict = model.predict(start=start-1, end=end-1, typ='levels')
+    predict = model.predict(start=start - 1, end=end - 1, typ='levels')
 
     # changing the type from a numpy list into a normal list
     prediction = list(predict.apply(np.round))
@@ -148,12 +149,13 @@ def predict_arima():
         "predicted": prediction,
     })
 
+
 @app.route('/predict/linear-regression', methods=['POST'])
 def predict_linear_regression():
     start, end, sold_data = parser_helper(request)
     lr_model = get_lr_model(start, end, sold_data)
 
-    predict = lr_model.predict([[x] for x in range(start-1, end)])
+    predict = lr_model.predict([[x] for x in range(start - 1, end)])
 
     predicted = [int(x) for x in list(predict)]
 
@@ -169,7 +171,7 @@ def predict_svr():
     start, end, sold_data = parser_helper(request)
     svr_model = get_svr_model(start, end, sold_data)
 
-    predict = svr_model.predict([[x] for x in range(start-1, end)])
+    predict = svr_model.predict([[x] for x in range(start - 1, end)])
 
     predicted = [int(x) for x in list(predict)]
 
@@ -177,6 +179,38 @@ def predict_svr():
         "start": start,
         "end": end,
         "predicted": predicted,
+    })
+
+
+@app.route("/predict/verbose/linear-regression", methods=["POST"])
+def predict_verbose_linear_regression():
+    start, end, sold_data = parser_helper(request)
+    my_lr_model = LinearRegression()
+
+    X, y = prepare_data(start, end, sold_data)
+    my_lr_model.fit(X, y)
+
+    predict = my_lr_model.predict([[x] for x in range(start - 1, end)])
+
+    return jsonify({
+        "start": start,
+        "end": end,
+        "predicted": {
+            "data": [int(x) for x in predict['data']],
+            "weights": predict["weights"][0],
+            "bias": predict["bias"],
+        },
+
+        "detail": [
+            {
+                "value": f"{X[start - 1:end][i][0]} x {predict['weights'][0]} + {predict['bias']}",
+                "output": f"{x}"
+            }
+
+            for i, x in enumerate(predict["data"])
+        ],
+
+        "algorithm": "Linear Regression"
     })
 
 
