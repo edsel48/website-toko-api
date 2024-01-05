@@ -139,5 +139,5 @@ class myARIMA:
         return {
             "data": forecasted_values,
             "prediction_steps": forecasted_data,
-            "Algorithm": "ARIMA"
+            "algorithm": "ARIMA"
         }
