@@ -22,8 +22,9 @@ from sklearn.svm import SVR
 # ENV
 from dotenv import load_dotenv
 
+from m_arima import predict_arima_verbose
 # Created Machine Learning Stuff
-from ml import LinearRegression, SVM, myARIMA
+from ml import LinearRegression, MySVR, MyARIMA
 
 
 def prepare_dataframe(data):
@@ -43,10 +44,10 @@ def get_order(dataframe):
 
 
 def arima_model(data, order):
-    model = ARIMA(data['sold'], order=order)
+    model = ARIMA(data['sold'], order=(1, 1, 1))
     model = model.fit()
 
-    model.summary()
+    print(model.summary())
 
     return model
 
@@ -113,13 +114,18 @@ def get_lr_model(start, end, sold_data):
 def get_svr_model(start, end, sold_data):
     X, y = prepare_data(start, end, sold_data)
 
-    svr = SVR(kernel='linear')
+    svr = SVR(kernel='linear', verbose=True)
     svr.fit(X, y)
 
     return svr
 
 
+def prepare_predict_data(start, end):
+    return [[x] for x in range(start - 1, end)]
+
+
 app = Flask(__name__)
+app.config['JSON_SORT_KEYS'] = False
 
 
 @app.route('/')
@@ -138,7 +144,7 @@ def predict_arima():
     model = process_data(sold_data)
 
     # predicting the data from the model
-    predict = model.predict(start=start - 1, end=end - 1, typ='levels')
+    predict = model.predict(start=start, end=end - 1, typ='levels')
 
     # changing the type from a numpy list into a normal list
     prediction = list(predict.apply(np.round))
@@ -173,6 +179,8 @@ def predict_svr():
 
     predict = svr_model.predict([[x] for x in range(start - 1, end)])
 
+    print(json.dumps(svr_model.get_params(deep=True), indent=4))
+
     predicted = [int(x) for x in list(predict)]
 
     return jsonify({
@@ -190,7 +198,7 @@ def predict_verbose_linear_regression():
     X, y = prepare_data(start, end, sold_data)
     my_lr_model.fit(X, y)
 
-    predict = my_lr_model.predict([[x] for x in range(start - 1, end)])
+    predict = my_lr_model.predict(prepare_predict_data(start, end))
 
     return jsonify({
         "start": start,
@@ -203,7 +211,7 @@ def predict_verbose_linear_regression():
 
         "detail": [
             {
-                "value": f"{X[start - 1:end][i][0]} x {predict['weights'][0]} + {predict['bias']}",
+                "value": f"{X[i][0]} x {predict['weights'][0]} + {predict['bias']}",
                 "output": f"{x}"
             }
 
@@ -214,6 +222,59 @@ def predict_verbose_linear_regression():
     })
 
 
+@app.route("/predict/verbose/svr", methods=["POST"])
+def predict_verbose_svr():
+    start, end, sold_data = parser_helper(request)
+    my_svr_model = MySVR()
+
+    X, y = prepare_data(start, end, sold_data)
+    my_svr_model.fit(X, y)
+
+    predict = my_svr_model.predict(prepare_predict_data(start, end))
+
+
+
+    return jsonify({
+        "start": start,
+        "end": end,
+        "predicted": {
+            "data": [int(x) for x in predict["data"]],
+            "weights": predict["weights"][0],
+            "bias": predict["bias"],
+        },
+        "detail": [
+            {
+                "value": f"{X[i][0]} x {predict['weights'][0]} + {predict['bias']}",
+                "output": f"{x}"
+            }
+
+            for i, x in enumerate(predict["data"])
+        ]
+    })
+
+@app.route("/predict/verbose/arima", methods=["POST"])
+def predict_verbose_arima():
+    start, end, sold_data = parser_helper(request)
+    prediction, verbose = predict_arima_verbose(sold_data)
+    cut_pred = prediction[start:end+1]
+    cut_verb = verbose[start:end+1]
+
+    return jsonify({
+        "start": start,
+        "end": end,
+        "predicted": cut_pred,
+        "detail": cut_verb
+    })
+
+
+@app.route("/format", methods=["POST"])
+def format_sold_data():
+    return {
+        "data": [int(x * 3 + 5) for x in range(0, 100)]
+    }
+
+
 if __name__ == '__main__':
     load_dotenv()
-    app.run(debug=True, port=7373)
+    app.json.sort_keys = False
+    app.run(debug=True, port=8020)
