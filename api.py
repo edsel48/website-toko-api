@@ -2,6 +2,8 @@
 import os
 
 from flask import Flask, jsonify, request
+from flask_cors import CORS
+import random
 
 # DATA PROCESSING STUFF
 import numpy as np
@@ -254,10 +256,11 @@ def predict_verbose_svr():
 
 @app.route("/predict/verbose/arima", methods=["POST"])
 def predict_verbose_arima():
+    print("CALLING VERBOSE ARIMA ")
     start, end, sold_data = parser_helper(request)
     prediction, verbose = predict_arima_verbose(sold_data)
-    cut_pred = prediction[start:end+1]
-    cut_verb = verbose[start:end+1]
+    cut_pred = prediction[start+1:end+2]
+    cut_verb = verbose[start+1:end+2]
 
     return jsonify({
         "start": start,
@@ -270,11 +273,12 @@ def predict_verbose_arima():
 @app.route("/format", methods=["POST"])
 def format_sold_data():
     return {
-        "data": [int(x * 3 + 5) for x in range(0, 100)]
+        "data": [int(x * 3 * random.randint(0, 50) + 5) for x in range(0, 100)]
     }
 
 
 if __name__ == '__main__':
     load_dotenv()
     app.json.sort_keys = False
-    app.run(debug=True, port=8020)
+    CORS(app)
+    app.run(debug=True, port=8080)
