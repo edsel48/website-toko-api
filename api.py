@@ -21,9 +21,6 @@ from sklearn.model_selection import train_test_split
 # SVR
 from sklearn.svm import SVR
 
-# ENV
-from dotenv import load_dotenv
-
 from m_arima import predict_arima_verbose
 # Created Machine Learning Stuff
 from ml import LinearRegression, MySVR, MyARIMA
@@ -116,7 +113,7 @@ def get_lr_model(start, end, sold_data):
 def get_svr_model(start, end, sold_data):
     X, y = prepare_data(start, end, sold_data)
 
-    svr = SVR(kernel='linear', verbose=True)
+    svr = SVR(kernel='poly', verbose=True)
     svr.fit(X, y)
 
     return svr
@@ -133,8 +130,8 @@ app.config['JSON_SORT_KEYS'] = False
 @app.route('/')
 def home():
     return jsonify({
-        'initial_data': os.environ.get('initial_data'),
-        'version': os.environ.get('version')
+        'initial_data': "haha",
+        'version': "testing-version"
     })
 
 
@@ -146,7 +143,7 @@ def predict_arima():
     model = process_data(sold_data)
 
     # predicting the data from the model
-    predict = model.predict(start=start, end=end - 1, typ='levels')
+    predict = model.predict(start=start, end=end - 1, type='levels')
 
     # changing the type from a numpy list into a normal list
     prediction = list(predict.apply(np.round))
@@ -278,7 +275,6 @@ def format_sold_data():
 
 
 if __name__ == '__main__':
-    load_dotenv()
     app.json.sort_keys = False
     CORS(app)
     app.run(debug=True, port=8080)
