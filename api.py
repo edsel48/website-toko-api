@@ -16,7 +16,6 @@ from statsmodels.tsa.arima.model import ARIMA
 
 # LINEAR REGRESSION
 from sklearn import linear_model
-from sklearn.model_selection import train_test_split
 
 # SVR
 from sklearn.svm import SVR
